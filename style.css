@@ -2,7 +2,9 @@ html {
   box-sizing: border-box;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: inherit;
 }
 
@@ -11,11 +13,12 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background-color: rgb(128, 162, 98);
 }
 
 .display {
   height: 120px;
-  background-color: rgb(243, 216, 181);
+  background-color: rgb(255, 255, 255);
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
@@ -26,30 +29,62 @@ body {
   font-size: 40px;
   margin: 0;
 }
- 
-.nums-container {
+
+.row {
   display: flex;
-  flex-wrap: wrap;
 }
 
-.operators-container {
+.left-container .row {
   display: flex;
+  flex: 1;
+}
+
+.left-container .row button {
+  display: flex;
+  flex: 1;
+}
+
+.left-container {
+  display: flex;
+  flex: 3;
   flex-direction: column;
+}
+
+.left-container .row.five #zero {
+  flex: 2;
+}
+
+.right-container button {
+  /* margin: 2px; */
+}
+
+.right-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  /* margin: 2px; */
+  /* gap: 2px; */
 }
 
 .buttons-container {
   display: flex;
-
+  flex: 1;
 }
 
 button {
-  width: 100px;
-  height: 50px;
-  border: 1px solid rgb(119, 73, 13);
+  /* width: 100px; */
+  /* height: 50px; */
+  border: none;
   font-size: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
+  /* flex: 1; */
+  margin: 2px;
+}
+
+button#equal {
+  flex: 3;
 }
 
 .display,
@@ -59,8 +94,12 @@ button {
 
 .calculator-container {
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   width: 400px;
   height: 450px;
-  background-color: antiquewhite;
+  background-color: rgb(223, 223, 223);
+  border-radius: 29px;
+  overflow: hidden;
+  box-shadow: 1px 1px 10px 3px rgba(0, 0, 0, 0.159);
 }
