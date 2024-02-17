@@ -181,6 +181,11 @@ describe('Calculator', () => {
     expect(calculator.digitsAfterDecimal(10.1933743)).toBe(7);
   })
 
+  test("Division to zero should show the infinity as a result", () => {
+    calculator.setExpression(['100', '/', '0']);
+    expect(calculator.calculate()).toBe(Infinity);
+  })
+
 });
 
 /* ************** functions tests **************** */

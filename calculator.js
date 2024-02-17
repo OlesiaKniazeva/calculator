@@ -265,6 +265,10 @@ export class Calculator {
 
     let result = numbersStack.at(0);
 
+    if (result === Infinity) {
+      return result;
+    }
+
     if (this.digitsAfterDecimal(result) > 2) {
       return this.round(result);
     }
