@@ -9,7 +9,6 @@ const calculator = new Calculator();
 
 buttonsContainer.addEventListener('click', (event) => {
   const button = getButtonId(event);
-  console.log(button);
 
   calculator.processSymbol(button);
 

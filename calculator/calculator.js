@@ -32,8 +32,6 @@ export class Calculator {
 
   #isDecimalEntered;
 
-  #isOperatorEntered;
-
   #hasEvaluated;
 
   #isDefault;
@@ -42,7 +40,6 @@ export class Calculator {
     this.#expression = [];
     this.#isDecimalEntered = false;
     this.#isDefault = false;
-    this.#isOperatorEntered = false;
     this.#hasEvaluated = false;
   }
 
@@ -50,7 +47,6 @@ export class Calculator {
     this.#expression = [];
     this.#isDecimalEntered = false;
     this.#isDefault = false;
-    this.#isOperatorEntered = false;
   }
 
   setHasEvaluated() {
@@ -63,14 +59,6 @@ export class Calculator {
 
   hasEvaluated() {
     return this.#hasEvaluated === true;
-  }
-
-  setOperatorEntered() {
-    this.#isOperatorEntered = true;
-  }
-
-  resetOperatorEntered() {
-    this.#isOperatorEntered = false;
   }
 
   resetDefault() {
@@ -125,7 +113,7 @@ export class Calculator {
       case OPERATOR.divide:
         return Calculator.divide(firstNum, secondNum);
       default:
-        console.log('ERROR, unexpected operator');
+        console.error('unexpected operator');
         return null;
     }
   }
@@ -214,7 +202,7 @@ export class Calculator {
         this.setHasEvaluated();
         break;
       default:
-        console.log('def');
+        console.error('unexpected button value');
     }
   }
 
