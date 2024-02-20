@@ -1,3 +1,5 @@
+import { isEmpty, isNumericString, getLastElement } from './utilities.js';
+
 const OPERATOR = {
   plus: '+',
   minus: '-',
@@ -27,8 +29,11 @@ const NUMBERS = {
 
 export class Calculator {
   #expression;
+
   #isDecimalEntered;
+
   #isOperatorEntered;
+
   #isDefault;
 
   constructor() {
@@ -86,7 +91,7 @@ export class Calculator {
   }
 
   getOperationDisplay() {
-    let data = this.tokenize();
+    const data = this.tokenize();
     return data.join(' ');
   }
 
@@ -94,34 +99,35 @@ export class Calculator {
     return this.getExpression().join('');
   }
 
-  operate(firstNum, operator, secondNum) {
+  static operate(firstNum, operator, secondNum) {
     switch (operator) {
       case OPERATOR.plus:
-        return this.add(firstNum, secondNum);
+        return Calculator.add(firstNum, secondNum);
       case OPERATOR.minus:
-        return this.subtract(firstNum, secondNum);
+        return Calculator.subtract(firstNum, secondNum);
       case OPERATOR.multiply:
-        return this.multiply(firstNum, secondNum);
+        return Calculator.multiply(firstNum, secondNum);
       case OPERATOR.divide:
-        return this.divide(firstNum, secondNum);
+        return Calculator.divide(firstNum, secondNum);
       default:
         console.log('ERROR, unexpected operator');
+        return null;
     }
   }
 
-  add(num1, num2) {
+  static add(num1, num2) {
     return num1 + num2;
   }
 
-  subtract(num1, num2) {
+  static subtract(num1, num2) {
     return num1 - num2;
   }
 
-  multiply(num1, num2) {
+  static multiply(num1, num2) {
     return num1 * num2;
   }
 
-  divide(num1, num2) {
+  static divide(num1, num2) {
     if (num2 === 0) {
       console.log('division to zero!');
     }
@@ -141,7 +147,6 @@ export class Calculator {
     if (SPECIAL_OPERATIONS[button]) {
       this.evaluateSpecial(button);
     } else if (NUMBERS[button]) {
-
       this.addToStack(NUMBERS[button]);
     } else if (OPERATOR[button]) {
       this.evaluateOperator(button);
@@ -174,14 +179,17 @@ export class Calculator {
       case SPECIAL_OPERATIONS.float:
         if (this.checkIfDecimalEntered()) {
           return;
-        } else {
-          this.addToStack('.');
-          this.setDecimal();
         }
+        this.addToStack('.');
+        this.setDecimal();
         break;
       case SPECIAL_OPERATIONS.equal:
         if (Object.values(OPERATOR).includes(this.getLastElement())) {
           return;
+        }
+
+        if (this.isEmpty()) {
+          this.addToStack('0');
         }
 
         this.processExpression();
@@ -192,10 +200,6 @@ export class Calculator {
   }
 
   getLastElement() {
-    if (this.isEmpty()) {
-      return null;
-    }
-
     const data = this.getExpression();
 
     return data[data.length - 1];
@@ -208,33 +212,34 @@ export class Calculator {
     return tokens;
   }
 
-  convertToPostfix(tokens) {
-    let posfixExp = [];
-    let operatorsStack = [];
+  static convertToPostfix(tokens) {
+    const posfixExp = [];
+    const operatorsStack = [];
 
-    for (const token of tokens) {
-      if (isNumeric(token)) {
+    tokens.forEach((token) => {
+      if (isNumericString(token)) {
         posfixExp.push(token);
       } else {
         while (true) {
-          let stackLast = getLastElement(operatorsStack);
+          const stackLast = getLastElement(operatorsStack);
 
           if (
-            stackLast === null ||
-            operatorPrecedence(token) > operatorPrecedence(stackLast)
+            stackLast === undefined ||
+            Calculator.operatorPrecedence(token) >
+              Calculator.operatorPrecedence(stackLast)
           ) {
             break;
           }
-          let last = operatorsStack.pop();
+          const last = operatorsStack.pop();
           posfixExp.push(last);
         }
 
         operatorsStack.push(token);
       }
-    }
+    });
 
     while (!isEmpty(operatorsStack)) {
-      let last = operatorsStack.pop();
+      const last = operatorsStack.pop();
 
       posfixExp.push(last);
     }
@@ -242,45 +247,61 @@ export class Calculator {
     return posfixExp;
   }
 
-  calculate() {
-    let tokens = this.tokenize();
-    let postfix = this.convertToPostfix(tokens);
-    return this.evaluatePostfix(postfix);
+  static operatorPrecedence(operator) {
+    if (operator === '*' || operator === '/') {
+      return 2;
+    }
+
+    if (operator === '+' || operator === '-') {
+      return 1;
+    }
+
+    return -1;
   }
 
-  evaluatePostfix(posfixExp) {
-    let numbersStack = [];
+  calculate() {
+    const tokens = this.tokenize();
+    const postfix = Calculator.convertToPostfix(tokens);
+    return Calculator.evaluatePostfix(postfix);
+  }
 
-    for (const token of posfixExp) {
-      if (isNumeric(token)) {
+  static evaluatePostfix(posfixExp) {
+    const numbersStack = [];
+
+    posfixExp.forEach((token) => {
+      if (isNumericString(token)) {
         numbersStack.push(Number(token));
       } else {
         const secondOperand = numbersStack.pop();
         const firstOperand = numbersStack.pop();
 
-        let result = this.operate(firstOperand, token, secondOperand);
-        numbersStack.push(result);
+        const operationResult = Calculator.operate(
+          firstOperand,
+          token,
+          secondOperand,
+        );
+        numbersStack.push(operationResult);
       }
-    }
+    });
 
-    let result = numbersStack.at(0);
+    const result = numbersStack.at(0);
 
     if (result === Infinity) {
       return result;
     }
 
-    if (this.digitsAfterDecimal(result) > 2) {
-      return this.round(result);
+    if (Calculator.digitsAfterDecimal(result) > 2) {
+      return Calculator.round(result);
     }
 
     return String(result);
   }
 
-  round(number) {
+  static round(number) {
     return number.toFixed(2);
   }
 
-  digitsAfterDecimal(number) {
+  static digitsAfterDecimal(number) {
     if (Number.isInteger(number)) {
       return 0;
     }
@@ -292,7 +313,7 @@ export class Calculator {
   }
 
   processExpression() {
-    let result = this.calculate();
+    const result = this.calculate();
     this.resetState();
     this.addToStack(result);
   }
@@ -302,9 +323,9 @@ export class Calculator {
   }
 
   removeLast() {
-    let last = this.removeFromStack();
+    const last = this.removeFromStack();
 
-    if (last == '.') {
+    if (last === '.') {
       this.resetDecimal();
     }
     if (this.isEmpty()) {
@@ -315,30 +336,4 @@ export class Calculator {
   clearData() {
     this.#expression = [];
   }
-}
-
-export function operatorPrecedence(operator) {
-  if (operator === '*' || operator === '/') {
-    return 2;
-  } else if (operator === '+' || operator === '-') {
-    return 1;
-  } else {
-    return -1;
-  }
-}
-
-function isEmpty(data) {
-  return data.length === 0;
-}
-
-function isNumeric(num) {
-  return !isNaN(num);
-}
-
-function getLastElement(array) {
-  if (isEmpty(array)) {
-    return null;
-  }
-
-  return array[array.length - 1];
 }

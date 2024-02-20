@@ -1,5 +1,4 @@
 import { Calculator } from './calculator.js';
-import { operatorPrecedence } from './calculator.js';
 
 describe('Calculator', () => {
   let calculator;
@@ -50,22 +49,22 @@ describe('Calculator', () => {
   });
 
   test('add performs addition correctly', () => {
-    const result = calculator.add(2, 3);
+    const result = Calculator.add(2, 3);
     expect(result).toBe(5);
   });
 
   test('subtract performs subtraction correctly', () => {
-    const result = calculator.subtract(5, 2);
+    const result = Calculator.subtract(5, 2);
     expect(result).toBe(3);
   });
 
   test('multiply performs multiplication correctly', () => {
-    const result = calculator.multiply(2, 3);
+    const result = Calculator.multiply(2, 3);
     expect(result).toBe(6);
   });
 
   test('divide performs division correctly', () => {
-    const result = calculator.divide(6, 2);
+    const result = Calculator.divide(6, 2);
     expect(result).toBe(3);
   });
 
@@ -128,13 +127,13 @@ describe('Calculator', () => {
   });
 
   test('Convert to postfix, change the infix expression to posfix expression', () => {
-    const postfix = calculator.convertToPostfix(['2.3', '+', '3', '*', '6']);
+    const postfix = Calculator.convertToPostfix(['2.3', '+', '3', '*', '6']);
 
     expect(postfix).toEqual(['2.3', '3', '6', '*', '+']);
   });
 
   test('Convert to postfix, change the infix expression to posfix expression', () => {
-    const postfix = calculator.convertToPostfix([
+    const postfix = Calculator.convertToPostfix([
       '2.3',
       '+',
       '3',
@@ -150,7 +149,7 @@ describe('Calculator', () => {
   });
 
   test('Convert to postfix, change the infix expression to posfix expression', () => {
-    const postfix = calculator.convertToPostfix(['2.3', '+', '3']);
+    const postfix = Calculator.convertToPostfix(['2.3', '+', '3']);
 
     expect(postfix).toEqual(['2.3', '3', '+']);
   });
@@ -158,42 +157,53 @@ describe('Calculator', () => {
   test('Postfix expression evaluated correctly', () => {
     const posfix = ['2', '3', '1', '*', '+', '9', '-'];
 
-    expect(calculator.evaluatePostfix(posfix)).toBe('-4');
-  })
+    expect(Calculator.evaluatePostfix(posfix)).toBe('-4');
+  });
 
   test('Postfix expression evaluated correctly', () => {
     const posfix = ['100', '200', '+', '2', '/', '5', '*', '7', '+'];
 
-    expect(calculator.evaluatePostfix(posfix)).toBe('757');
-  })
+    expect(Calculator.evaluatePostfix(posfix)).toBe('757');
+  });
 
   test('Postfix expression evaluated correctly', () => {
     const posfix = ['1', '3', '/'];
 
-    expect(calculator.evaluatePostfix(posfix)).toBe('0.33');
-  })
+    expect(Calculator.evaluatePostfix(posfix)).toBe('0.33');
+  });
 
-  test("digitsAfterDecimal return right amount of digits after the point of decimal", () => {
-    expect(calculator.digitsAfterDecimal(5)).toBe(0);
-    expect(calculator.digitsAfterDecimal(10)).toBe(0);
-    expect(calculator.digitsAfterDecimal(10.89)).toBe(2);
-    expect(calculator.digitsAfterDecimal(10.9989)).toBe(4);
-    expect(calculator.digitsAfterDecimal(10.1933743)).toBe(7);
-  })
+  test('digitsAfterDecimal return right amount of digits after the point of decimal', () => {
+    expect(Calculator.digitsAfterDecimal(5)).toBe(0);
+    expect(Calculator.digitsAfterDecimal(10)).toBe(0);
+    expect(Calculator.digitsAfterDecimal(10.89)).toBe(2);
+    expect(Calculator.digitsAfterDecimal(10.9989)).toBe(4);
+    expect(Calculator.digitsAfterDecimal(10.1933743)).toBe(7);
+  });
 
-  test("Division to zero should show the infinity as a result", () => {
+  test('Division to zero should show the infinity as a result', () => {
     calculator.setExpression(['100', '/', '0']);
     expect(calculator.calculate()).toBe(Infinity);
-  })
+  });
 
-});
+  test('Input of several operators in a raw should be prevented', () => {
+    calculator.processSymbol('one');
+    calculator.processSymbol('plus');
+    calculator.processSymbol('plus');
 
-/* ************** functions tests **************** */
+    expect(calculator.getExpression()).toEqual(['1', '+']);
+  });
 
-test('OperatorPrecedence return right raiting for operators', () => {
-  expect(operatorPrecedence('+')).toBe(1);
-  expect(operatorPrecedence('-')).toBe(1);
-  expect(operatorPrecedence('/')).toBe(2);
-  expect(operatorPrecedence('*')).toBe(2);
-  expect(operatorPrecedence('=')).toBe(-1);
+  test('If user pushed equal as a first key, it should return defaut zero', () => {
+    calculator.processSymbol('equal');
+
+    expect(calculator.getExpression()).toEqual(['0']);
+  });
+
+  test('OperatorPrecedence return right raiting for operators', () => {
+    expect(Calculator.operatorPrecedence('+')).toBe(1);
+    expect(Calculator.operatorPrecedence('-')).toBe(1);
+    expect(Calculator.operatorPrecedence('/')).toBe(2);
+    expect(Calculator.operatorPrecedence('*')).toBe(2);
+    expect(Calculator.operatorPrecedence('=')).toBe(-1);
+  });
 });
