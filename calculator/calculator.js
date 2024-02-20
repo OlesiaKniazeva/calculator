@@ -34,6 +34,8 @@ export class Calculator {
 
   #isOperatorEntered;
 
+  #hasEvaluated;
+
   #isDefault;
 
   constructor() {
@@ -41,6 +43,7 @@ export class Calculator {
     this.#isDecimalEntered = false;
     this.#isDefault = false;
     this.#isOperatorEntered = false;
+    this.#hasEvaluated = false;
   }
 
   resetState() {
@@ -48,6 +51,18 @@ export class Calculator {
     this.#isDecimalEntered = false;
     this.#isDefault = false;
     this.#isOperatorEntered = false;
+  }
+
+  setHasEvaluated() {
+    this.#hasEvaluated = true;
+  }
+
+  resetHasEvaluated() {
+    this.#hasEvaluated = false;
+  }
+
+  hasEvaluated() {
+    return this.#hasEvaluated === true;
   }
 
   setOperatorEntered() {
@@ -75,11 +90,11 @@ export class Calculator {
   }
 
   checkIfDefault() {
-    return this.#isDefault;
+    return this.#isDefault === true;
   }
 
   checkIfDecimalEntered() {
-    return this.#isDecimalEntered;
+    return this.#isDecimalEntered === true;
   }
 
   getExpression() {
@@ -128,10 +143,6 @@ export class Calculator {
   }
 
   static divide(num1, num2) {
-    if (num2 === 0) {
-      console.log('division to zero!');
-    }
-
     return num1 / num2;
   }
 
@@ -145,10 +156,17 @@ export class Calculator {
 
   processSymbol(button) {
     if (SPECIAL_OPERATIONS[button]) {
+      this.resetHasEvaluated();
       this.evaluateSpecial(button);
     } else if (NUMBERS[button]) {
+      if (this.#hasEvaluated) {
+        this.resetState();
+        this.resetHasEvaluated();
+      }
+
       this.addToStack(NUMBERS[button]);
     } else if (OPERATOR[button]) {
+      this.resetHasEvaluated();
       this.evaluateOperator(button);
     }
   }
@@ -193,6 +211,7 @@ export class Calculator {
         }
 
         this.processExpression();
+        this.setHasEvaluated();
         break;
       default:
         console.log('def');
@@ -248,11 +267,11 @@ export class Calculator {
   }
 
   static operatorPrecedence(operator) {
-    if (operator === '*' || operator === '/') {
+    if (operator === OPERATOR.multiply || operator === OPERATOR.divide) {
       return 2;
     }
 
-    if (operator === '+' || operator === '-') {
+    if (operator === OPERATOR.plus || operator === OPERATOR.minus) {
       return 1;
     }
 
@@ -307,7 +326,6 @@ export class Calculator {
     }
 
     const parts = number.toString().split('.');
-    console.log(parts);
 
     return parts[1].length;
   }
