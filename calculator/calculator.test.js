@@ -7,16 +7,6 @@ describe('Calculator', () => {
     calculator = new Calculator();
   });
 
-  test('resetDefault sets flag to false', () => {
-    calculator.resetDefault();
-    expect(calculator.checkIfDefault()).toBe(false);
-  });
-
-  test('setDefault sets flag to true', () => {
-    calculator.setDefault();
-    expect(calculator.checkIfDefault()).toBe(true);
-  });
-
   test('resetDecimal sets flag to false', () => {
     calculator.resetDecimal();
     expect(calculator.checkIfDecimalEntered()).toBe(false);
@@ -33,17 +23,13 @@ describe('Calculator', () => {
   });
 
   test('getOperationDisplay returns the current operation as a string splitted with spaces', () => {
-    calculator.addToStack('2');
-    calculator.addToStack('+');
-    calculator.addToStack('3');
+    calculator.setExpression(['2', '+', 3]);
 
     expect(calculator.getOperationDisplay()).toBe('2 + 3');
   });
 
   test('convertExpressionToString returns the expression as a string', () => {
-    calculator.addToStack('2');
-    calculator.addToStack('+');
-    calculator.addToStack('3');
+    calculator.setExpression(['2', '+', 3]);
 
     expect(calculator.convertExpressionToString()).toBe('2+3');
   });
@@ -83,7 +69,7 @@ describe('Calculator', () => {
   });
 
   test('Evaluate operator not add zero to stack if stack was filled before operation', () => {
-    calculator.addToStack('2');
+    calculator.setExpression(['2']);
     calculator.evaluateOperator('minus');
     const expression = calculator.getExpression();
 
@@ -97,10 +83,7 @@ describe('Calculator', () => {
   });
 
   test('Tokenize split operators and operands', () => {
-    calculator.addToStack('3');
-    calculator.addToStack('4');
-    calculator.addToStack('+');
-    calculator.addToStack('6');
+    calculator.setExpression(['3', '4', '+', '6']);
 
     expect(calculator.tokenize()).toEqual(['34', '+', '6']);
 
@@ -119,9 +102,7 @@ describe('Calculator', () => {
   });
 
   test('Tokenize right if first data is operator', () => {
-    calculator.addToStack('-');
-    calculator.addToStack('5');
-    calculator.addToStack('3');
+    calculator.setExpression(['-', '5', '3']);
 
     expect(calculator.tokenize()).toEqual(['-', '53']);
   });
@@ -205,5 +186,15 @@ describe('Calculator', () => {
     expect(Calculator.operatorPrecedence('/')).toBe(2);
     expect(Calculator.operatorPrecedence('*')).toBe(2);
     expect(Calculator.operatorPrecedence('=')).toBe(-1);
+  });
+
+  test('By default array is equal to ["0"] for the future display', () => {
+    expect(calculator.getExpression()).toEqual(['0']);
+  });
+
+  test('If first user input is number, change zero to the number', () => {
+    calculator.processSymbol('5');
+
+    expect(calculator.getExpression()).toEqual(['5']);
   });
 });

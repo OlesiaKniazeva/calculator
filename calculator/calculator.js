@@ -1,20 +1,20 @@
 import { isEmpty, isNumericString, getLastElement } from './utilities.js';
 
-const OPERATOR = {
+export const OPERATOR = {
   plus: '+',
   minus: '-',
   multiply: '*',
   divide: '/',
 };
 
-const SPECIAL_OPERATIONS = {
+export const SPECIAL_OPERATIONS = {
   float: 'float',
   clear: 'clear',
   backspace: 'backspace',
   equal: 'equal',
 };
 
-const NUMBERS = {
+export const NUMBERS = {
   zero: '0',
   one: '1',
   two: '2',
@@ -34,19 +34,203 @@ export class Calculator {
 
   #hasEvaluated;
 
-  #isDefault;
-
   constructor() {
-    this.#expression = [];
+    this.#expression = ['0'];
     this.#isDecimalEntered = false;
-    this.#isDefault = false;
     this.#hasEvaluated = false;
   }
 
-  resetState() {
-    this.#expression = [];
-    this.#isDecimalEntered = false;
-    this.#isDefault = false;
+  processSymbol(button) {
+    if (SPECIAL_OPERATIONS[button]) {
+      this.resetHasEvaluated();
+      this.evaluateSpecial(button);
+    } else if (NUMBERS[button]) {
+      if (this.#hasEvaluated) {
+        this.setExpression([]);
+        this.resetDecimal();
+        this.resetHasEvaluated();
+      }
+
+      const expression = this.getExpression();
+      if (expression.length === 1 && expression[0] === '0') {
+        this.setExpression([]);
+      }
+
+      this.addToStack(NUMBERS[button]);
+    } else if (OPERATOR[button]) {
+      this.resetHasEvaluated();
+      this.evaluateOperator(button);
+    }
+  }
+
+  exchangeSymbolsForDisplay() {
+    const symbolMap = {
+      '*': '×',
+      '/': '÷',
+    };
+
+    return this.getExpression().map((token) => symbolMap[token] || token);
+  }
+
+  getOperationDisplay() {
+    const display = this.exchangeSymbolsForDisplay();
+    const data = this.tokenize(display);
+    console.log(data);
+
+    return data.join(' ');
+  }
+
+  evaluateSpecial(button) {
+    switch (button) {
+      case SPECIAL_OPERATIONS.clear:
+        this.clearData();
+        this.resetDecimal();
+        break;
+      case SPECIAL_OPERATIONS.backspace:
+        this.removeLast();
+        break;
+      case SPECIAL_OPERATIONS.float:
+        if (this.checkIfDecimalEntered()) {
+          return;
+        }
+        this.addToStack('.');
+        this.setDecimal();
+        break;
+      case SPECIAL_OPERATIONS.equal:
+        if (Object.values(OPERATOR).includes(this.getLastElement())) {
+          return;
+        }
+
+        this.processExpression();
+        this.setHasEvaluated();
+        break;
+      default:
+        console.error('unexpected button value');
+    }
+  }
+
+  clearData() {
+    this.#expression = ['0'];
+  }
+
+  removeLast() {
+    const last = this.removeFromStack();
+
+    if (last === '.') {
+      this.resetDecimal();
+    }
+
+    if (this.isEmpty()) {
+      this.setExpression(['0']);
+    }
+  }
+
+  processExpression() {
+    const result = this.calculate();
+    this.resetDecimal();
+    this.setExpression([]);
+    this.addToStack(result);
+  }
+
+  calculate() {
+    const tokens = this.tokenize();
+    const postfix = Calculator.convertToPostfix(tokens);
+    return Calculator.evaluatePostfix(postfix);
+  }
+
+  tokenize(inputArray) {
+    const data = inputArray ? inputArray.join('') : this.convertExpressionToString();
+
+    const tokens = data
+      .split(/([+\-*/])|(\d+\.\d+|\d+\.|\.\d+|\d+)/)
+      .filter(Boolean);
+    return tokens;
+  }
+
+  convertExpressionToString() {
+    return this.getExpression().join('');
+  }
+
+  static convertToPostfix(tokens) {
+    const posfixExp = [];
+    const operatorsStack = [];
+
+    tokens.forEach((token) => {
+      if (isNumericString(token)) {
+        posfixExp.push(token);
+      } else {
+        while (true) {
+          const stackLast = getLastElement(operatorsStack);
+
+          if (
+            stackLast === undefined ||
+            Calculator.operatorPrecedence(token) >
+              Calculator.operatorPrecedence(stackLast)
+          ) {
+            break;
+          }
+          const last = operatorsStack.pop();
+          posfixExp.push(last);
+        }
+
+        operatorsStack.push(token);
+      }
+    });
+
+    while (!isEmpty(operatorsStack)) {
+      const last = operatorsStack.pop();
+
+      posfixExp.push(last);
+    }
+
+    return posfixExp;
+  }
+
+  static evaluatePostfix(posfixExp) {
+    const numbersStack = [];
+
+    posfixExp.forEach((token) => {
+      if (isNumericString(token)) {
+        numbersStack.push(Number(token));
+      } else {
+        const secondOperand = numbersStack.pop();
+        const firstOperand = numbersStack.pop();
+
+        const operationResult = Calculator.operate(
+          firstOperand,
+          token,
+          secondOperand,
+        );
+        numbersStack.push(operationResult);
+      }
+    });
+
+    const result = numbersStack.at(0);
+
+    if (result === Infinity) {
+      return result;
+    }
+
+    if (Calculator.digitsAfterDecimal(result) > 2) {
+      return Calculator.round(result);
+    }
+
+    return String(result);
+  }
+
+  evaluateOperator(button) {
+    if (Object.values(OPERATOR).includes(this.getLastElement())) {
+      return;
+    }
+
+    this.resetDecimal();
+    this.addToStack(OPERATOR[button]);
+  }
+
+  getLastElement() {
+    const data = this.getExpression();
+
+    return data[data.length - 1];
   }
 
   setHasEvaluated() {
@@ -61,24 +245,12 @@ export class Calculator {
     return this.#hasEvaluated === true;
   }
 
-  resetDefault() {
-    this.#isDefault = false;
-  }
-
-  setDefault() {
-    this.#isDefault = true;
-  }
-
   resetDecimal() {
     this.#isDecimalEntered = false;
   }
 
   setDecimal() {
     this.#isDecimalEntered = true;
-  }
-
-  checkIfDefault() {
-    return this.#isDefault === true;
   }
 
   checkIfDecimalEntered() {
@@ -91,15 +263,6 @@ export class Calculator {
 
   setExpression(expression) {
     this.#expression = expression;
-  }
-
-  getOperationDisplay() {
-    const data = this.tokenize();
-    return data.join(' ');
-  }
-
-  convertExpressionToString() {
-    return this.getExpression().join('');
   }
 
   static operate(firstNum, operator, secondNum) {
@@ -142,118 +305,6 @@ export class Calculator {
     this.#expression.pop();
   }
 
-  processSymbol(button) {
-    if (SPECIAL_OPERATIONS[button]) {
-      this.resetHasEvaluated();
-      this.evaluateSpecial(button);
-    } else if (NUMBERS[button]) {
-      if (this.#hasEvaluated) {
-        this.resetState();
-        this.resetHasEvaluated();
-      }
-
-      this.addToStack(NUMBERS[button]);
-    } else if (OPERATOR[button]) {
-      this.resetHasEvaluated();
-      this.evaluateOperator(button);
-    }
-  }
-
-  evaluateOperator(button) {
-    if (Object.values(OPERATOR).includes(this.getLastElement())) {
-      return;
-    }
-
-    if (this.isEmpty()) {
-      this.addToStack('0');
-    }
-
-    this.resetDecimal();
-    this.addToStack(OPERATOR[button]);
-  }
-
-  evaluateSpecial(button) {
-    switch (button) {
-      case SPECIAL_OPERATIONS.clear:
-        this.clearData();
-        this.resetDecimal();
-        this.setDefault();
-        break;
-      case SPECIAL_OPERATIONS.backspace:
-        this.removeLast();
-        break;
-      case SPECIAL_OPERATIONS.float:
-        if (this.checkIfDecimalEntered()) {
-          return;
-        }
-        this.addToStack('.');
-        this.setDecimal();
-        break;
-      case SPECIAL_OPERATIONS.equal:
-        if (Object.values(OPERATOR).includes(this.getLastElement())) {
-          return;
-        }
-
-        if (this.isEmpty()) {
-          this.addToStack('0');
-        }
-
-        this.processExpression();
-        this.setHasEvaluated();
-        break;
-      default:
-        console.error('unexpected button value');
-    }
-  }
-
-  getLastElement() {
-    const data = this.getExpression();
-
-    return data[data.length - 1];
-  }
-
-  tokenize() {
-    const data = this.convertExpressionToString();
-
-    const tokens = data.split(/([+\-*/])|(\d+\.\d+|\d+)/).filter(Boolean);
-    return tokens;
-  }
-
-  static convertToPostfix(tokens) {
-    const posfixExp = [];
-    const operatorsStack = [];
-
-    tokens.forEach((token) => {
-      if (isNumericString(token)) {
-        posfixExp.push(token);
-      } else {
-        while (true) {
-          const stackLast = getLastElement(operatorsStack);
-
-          if (
-            stackLast === undefined ||
-            Calculator.operatorPrecedence(token) >
-              Calculator.operatorPrecedence(stackLast)
-          ) {
-            break;
-          }
-          const last = operatorsStack.pop();
-          posfixExp.push(last);
-        }
-
-        operatorsStack.push(token);
-      }
-    });
-
-    while (!isEmpty(operatorsStack)) {
-      const last = operatorsStack.pop();
-
-      posfixExp.push(last);
-    }
-
-    return posfixExp;
-  }
-
   static operatorPrecedence(operator) {
     if (operator === OPERATOR.multiply || operator === OPERATOR.divide) {
       return 2;
@@ -264,44 +315,6 @@ export class Calculator {
     }
 
     return -1;
-  }
-
-  calculate() {
-    const tokens = this.tokenize();
-    const postfix = Calculator.convertToPostfix(tokens);
-    return Calculator.evaluatePostfix(postfix);
-  }
-
-  static evaluatePostfix(posfixExp) {
-    const numbersStack = [];
-
-    posfixExp.forEach((token) => {
-      if (isNumericString(token)) {
-        numbersStack.push(Number(token));
-      } else {
-        const secondOperand = numbersStack.pop();
-        const firstOperand = numbersStack.pop();
-
-        const operationResult = Calculator.operate(
-          firstOperand,
-          token,
-          secondOperand,
-        );
-        numbersStack.push(operationResult);
-      }
-    });
-
-    const result = numbersStack.at(0);
-
-    if (result === Infinity) {
-      return result;
-    }
-
-    if (Calculator.digitsAfterDecimal(result) > 2) {
-      return Calculator.round(result);
-    }
-
-    return String(result);
   }
 
   static round(number) {
@@ -318,28 +331,7 @@ export class Calculator {
     return parts[1].length;
   }
 
-  processExpression() {
-    const result = this.calculate();
-    this.resetState();
-    this.addToStack(result);
-  }
-
   isEmpty() {
     return this.getExpression().length === 0;
-  }
-
-  removeLast() {
-    const last = this.removeFromStack();
-
-    if (last === '.') {
-      this.resetDecimal();
-    }
-    if (this.isEmpty()) {
-      this.setDefault();
-    }
-  }
-
-  clearData() {
-    this.#expression = [];
   }
 }
