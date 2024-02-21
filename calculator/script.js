@@ -1,18 +1,12 @@
-import {
-  Calculator,
-  NUMBERS,
-  OPERATOR,
-  SPECIAL_OPERATIONS,
-} from './calculator.js';
+import { Calculator } from './calculator.js';
 
 /** ******************* UI ******************** */
 
 const buttonsContainer = document.querySelector('.buttons-container');
 
-// const display = document.querySelector('.display');
-const displayText = document.querySelector('.display p');
+const displayText = document.querySelector('.display .text');
 
-displayText.focus({ focusVisible: true });
+// displayText.focus();
 
 const calculator = new Calculator();
 
@@ -21,11 +15,15 @@ buttonsContainer.addEventListener('click', (event) => {
 
   calculator.processSymbol(button);
 
+  updateTheDisplay();
+});
+
+function updateTheDisplay() {
   const content = calculator.getOperationDisplay();
   displayText.textContent = content;
 
-  displayText.focus();
-});
+  // displayText.focus();
+}
 
 function getButtonId(event) {
   return event.target.id;
@@ -57,10 +55,5 @@ window.addEventListener('keydown', ({ key }) => {
     calculator.processSymbol(symbol);
   }
 
-  // Update the display
-  const content = calculator.getOperationDisplay();
-  displayText.textContent = content;
-
-  // Set focus on the display
-  displayText.focus();
+  updateTheDisplay();
 });

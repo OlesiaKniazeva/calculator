@@ -1,20 +1,20 @@
 import { isEmpty, isNumericString, getLastElement } from './utilities.js';
 
-export const OPERATOR = {
+const OPERATOR = {
   plus: '+',
   minus: '-',
   multiply: '*',
   divide: '/',
 };
 
-export const SPECIAL_OPERATIONS = {
+const SPECIAL_OPERATIONS = {
   float: 'float',
   clear: 'clear',
   backspace: 'backspace',
   equal: 'equal',
 };
 
-export const NUMBERS = {
+const NUMBERS = {
   zero: '0',
   one: '1',
   two: '2',
@@ -139,7 +139,9 @@ export class Calculator {
   }
 
   tokenize(inputArray) {
-    const data = inputArray ? inputArray.join('') : this.convertExpressionToString();
+    const data = inputArray
+      ? inputArray.join('')
+      : this.convertExpressionToString();
 
     const tokens = data
       .split(/([+\-*/])|(\d+\.\d+|\d+\.|\.\d+|\d+)/)
