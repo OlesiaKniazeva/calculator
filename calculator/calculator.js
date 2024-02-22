@@ -90,7 +90,6 @@ export class Calculator {
   getOperationDisplay() {
     const display = this.exchangeSymbolsForDisplay();
     const data = this.tokenize(display);
-    console.log(data);
 
     return data.join(' ');
   }
@@ -154,7 +153,6 @@ export class Calculator {
 
   calculate() {
     const tokens = this.tokenize();
-    console.log(tokens);
 
     const postfix = Calculator.convertToPostfix(tokens);
     return Calculator.evaluatePostfix(postfix);
