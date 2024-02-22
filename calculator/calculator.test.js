@@ -102,9 +102,9 @@ describe('Calculator', () => {
   });
 
   test('Tokenize right if first data is operator', () => {
-    calculator.setExpression(['-', '5', '3']);
+    calculator.setExpression(['+', '5', '3']);
 
-    expect(calculator.tokenize()).toEqual(['-', '53']);
+    expect(calculator.tokenize()).toEqual(['+', '53']);
   });
 
   test('Convert to postfix, change the infix expression to posfix expression', () => {
@@ -193,8 +193,38 @@ describe('Calculator', () => {
   });
 
   test('If first user input is number, change zero to the number', () => {
-    calculator.processSymbol('5');
+    calculator.processSymbol('five');
 
     expect(calculator.getExpression()).toEqual(['5']);
+  });
+
+  test('If user input several operators, change them', () => {
+    calculator.processSymbol('plus');
+    calculator.processSymbol('multiply');
+
+    expect(calculator.getExpression()).toEqual(['0', '*']);
+  });
+
+  test('After multiply or divide user can paste unary minus', () => {
+    calculator.processSymbol('two');
+    calculator.processSymbol('multiply');
+    calculator.processSymbol('minus');
+    calculator.processSymbol('five');
+
+    expect(calculator.getExpression()).toEqual(['2', '*', '-', '5']);
+    expect(calculator.getOperationDisplay()).toEqual('2 × - 5');
+
+    calculator.processSymbol('equal');
+
+    expect(calculator.getOperationDisplay()).toBe('-10');
+  });
+
+  test('If user pushed minus two times at a start of program, he should get unary minus', () => {
+    calculator.processSymbol('minus');
+    calculator.processSymbol('minus');
+    calculator.processSymbol('five');
+
+    expect(calculator.getExpression()).toEqual(['-', '5']);
+    expect(calculator.getOperationDisplay()).toBe('-5');
   });
 });

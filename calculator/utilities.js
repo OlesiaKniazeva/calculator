@@ -9,3 +9,7 @@ export function isNumericString(input) {
 export function getLastElement(array) {
   return array[array.length - 1];
 }
+
+export function arraysEqual(a, b) {
+  return a.length === b.length && a.every((val, index) => val === b[index]);
+}

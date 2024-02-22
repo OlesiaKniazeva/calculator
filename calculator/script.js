@@ -6,8 +6,6 @@ const buttonsContainer = document.querySelector('.buttons-container');
 
 const displayText = document.querySelector('.display .text');
 
-// displayText.focus();
-
 const calculator = new Calculator();
 
 buttonsContainer.addEventListener('click', (event) => {
@@ -21,8 +19,6 @@ buttonsContainer.addEventListener('click', (event) => {
 function updateTheDisplay() {
   const content = calculator.getOperationDisplay();
   displayText.textContent = content;
-
-  // displayText.focus();
 }
 
 function getButtonId(event) {
@@ -44,6 +40,7 @@ const KEYBOARD_MAPPING = {
   '*': 'multiply',
   '/': 'divide',
   Enter: 'equal',
+  '=': 'equal',
   Backspace: 'backspace',
   Escape: 'clear',
   '.': 'float',

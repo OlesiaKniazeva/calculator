@@ -1,4 +1,9 @@
-import { isEmpty, isNumericString, getLastElement } from './utilities.js';
+import {
+  isEmpty,
+  isNumericString,
+  getLastElement,
+  arraysEqual,
+} from './utilities.js';
 
 const OPERATOR = {
   plus: '+',
@@ -34,6 +39,8 @@ export class Calculator {
 
   #hasEvaluated;
 
+  #isUnaryMinus;
+
   constructor() {
     this.#expression = ['0'];
     this.#isDecimalEntered = false;
@@ -45,7 +52,11 @@ export class Calculator {
       this.resetHasEvaluated();
       this.evaluateSpecial(button);
     } else if (NUMBERS[button]) {
-      if (this.#hasEvaluated) {
+      if (this.isUnaryMinus()) {
+        this.resetUnaryMinus();
+      }
+
+      if (this.hasEvaluated()) {
         this.setExpression([]);
         this.resetDecimal();
         this.resetHasEvaluated();
@@ -58,6 +69,10 @@ export class Calculator {
 
       this.addToStack(NUMBERS[button]);
     } else if (OPERATOR[button]) {
+      if (this.isUnaryMinus()) {
+        return;
+      }
+
       this.resetHasEvaluated();
       this.evaluateOperator(button);
     }
@@ -85,12 +100,13 @@ export class Calculator {
       case SPECIAL_OPERATIONS.clear:
         this.clearData();
         this.resetDecimal();
+        this.resetUnaryMinus();
         break;
       case SPECIAL_OPERATIONS.backspace:
         this.removeLast();
         break;
       case SPECIAL_OPERATIONS.float:
-        if (this.checkIfDecimalEntered()) {
+        if (this.checkIfDecimalEntered() || this.isUnaryMinus()) {
           return;
         }
         this.addToStack('.');
@@ -120,6 +136,10 @@ export class Calculator {
       this.resetDecimal();
     }
 
+    if (this.isUnaryMinus()) {
+      this.resetUnaryMinus();
+    }
+
     if (this.isEmpty()) {
       this.setExpression(['0']);
     }
@@ -134,6 +154,8 @@ export class Calculator {
 
   calculate() {
     const tokens = this.tokenize();
+    console.log(tokens);
+
     const postfix = Calculator.convertToPostfix(tokens);
     return Calculator.evaluatePostfix(postfix);
   }
@@ -146,6 +168,16 @@ export class Calculator {
     const tokens = data
       .split(/([+\-*/])|(\d+\.\d+|\d+\.|\.\d+|\d+)/)
       .filter(Boolean);
+
+    for (let i = 0; i < tokens.length; i++) {
+      if (
+        tokens[i] === '-' &&
+        ((i === 0 && tokens[i + 1]) || ['*', '/'].includes(tokens[i - 1]))
+      ) {
+        tokens[i] += tokens[i + 1];
+        tokens.splice(i + 1, 1);
+      }
+    }
     return tokens;
   }
 
@@ -222,7 +254,17 @@ export class Calculator {
 
   evaluateOperator(button) {
     if (Object.values(OPERATOR).includes(this.getLastElement())) {
-      return;
+      if (button === 'minus' && arraysEqual(this.getExpression(), ['0', '-'])) {
+        this.setExpression([]);
+        this.setUnaryMinus();
+      } else if (
+        button === 'minus' &&
+        (this.getLastElement() === '*' || this.getLastElement() === '/')
+      ) {
+        this.setUnaryMinus();
+      } else {
+        this.removeLast();
+      }
     }
 
     this.resetDecimal();
@@ -241,6 +283,18 @@ export class Calculator {
 
   resetHasEvaluated() {
     this.#hasEvaluated = false;
+  }
+
+  setUnaryMinus() {
+    this.#isUnaryMinus = true;
+  }
+
+  resetUnaryMinus() {
+    this.#isUnaryMinus = false;
+  }
+
+  isUnaryMinus() {
+    return this.#isUnaryMinus === true;
   }
 
   hasEvaluated() {
